@@ -43,9 +43,10 @@ namespace Calculator_WinForms
 
             if (buttonText == "⌫")
             {
-                if (CalculatorViewBox.Text.Length > 1)
+                string text = CalculatorViewBox.Text;
+                if (text.Length > 1)
                 {
-                    CalculatorViewBox.Text = CalculatorViewBox.Text.Substring(0, CalculatorViewBox.Text.Length - 1);
+                    CalculatorViewBox.Text = text.Substring(0, text.Length - 1);
                 }
                 else
                 {
@@ -56,32 +57,21 @@ namespace Calculator_WinForms
 
             if (buttonText == "⁺/₋")
             {
-                if (CalculatorViewBox.Text == "0" || string.IsNullOrEmpty(CalculatorViewBox.Text))
+                string text = CalculatorViewBox.Text;
+                if (text == "0")
                 {
                     return;
                 }
 
-                string expression = CalculatorViewBox.Text;
-                string lastNumber = GetLastNumber(expression);
-                
-                if (!string.IsNullOrEmpty(lastNumber))
+                string lastNumber = GetLastNumber(text);
+                if (lastNumber == "")
                 {
-                    string newNumber;
-                    if (lastNumber.StartsWith("-"))
-                    {
-                        newNumber = lastNumber.Substring(1);
-                    }
-                    else
-                    {
-                        newNumber = "-" + lastNumber;
-                    }
-                    
-                    int lastIndex = expression.LastIndexOf(lastNumber);
-                    if (lastIndex >= 0)
-                    {
-                        CalculatorViewBox.Text = expression.Substring(0, lastIndex) + newNumber;
-                    }
+                    return;
                 }
+                
+                string newNumber = lastNumber.StartsWith("-") ? lastNumber.Substring(1) : "-" + lastNumber;
+                int lastIndex = text.LastIndexOf(lastNumber);
+                CalculatorViewBox.Text = text.Substring(0, lastIndex) + newNumber;
                 return;
             }
 
@@ -199,15 +189,15 @@ namespace Calculator_WinForms
 
                 double resultValue = Convert.ToDouble(result);
 
-                if (resultValue % 1 == 0)
+                if (double.IsInfinity(resultValue) || double.IsNaN(resultValue))
                 {
-                    CalculatorViewBox.Text = resultValue.ToString("0");
-                }
-                else
-                {
-                    CalculatorViewBox.Text = resultValue.ToString("G");
+                    MessageBox.Show("Cannot divide by zero.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    CalculatorViewBox.Text = "0";
+                    isNewCalculation = false;
+                    return;
                 }
 
+                CalculatorViewBox.Text = resultValue.ToString();
                 isNewCalculation = true;
             }
             catch (SyntaxErrorException)
@@ -228,20 +218,25 @@ namespace Calculator_WinForms
         {
             if (string.IsNullOrEmpty(expression))
             {
-                return string.Empty;
+                return "";
             }
 
             int i = expression.Length - 1;
-            
+
             while (i >= 0 && IsOperatorChar(expression[i]))
             {
                 i--;
             }
 
-            int endIndex = i;
-            
+            if (i < 0)
+            {
+                return "";
+            }
+
+            string lastNumber = "";
             while (i >= 0 && (char.IsDigit(expression[i]) || expression[i] == '.'))
             {
+                lastNumber = expression[i] + lastNumber;
                 i--;
             }
 
@@ -249,16 +244,11 @@ namespace Calculator_WinForms
             {
                 if (i == 0 || IsOperatorChar(expression[i - 1]))
                 {
-                    i--;
+                    lastNumber = "-" + lastNumber;
                 }
             }
 
-            if (endIndex >= 0 && i < endIndex)
-            {
-                return expression.Substring(i + 1, endIndex - i);
-            }
-
-            return string.Empty;
+            return lastNumber;
         }
 
         private bool IsOperatorChar(char c)
@@ -281,20 +271,16 @@ namespace Calculator_WinForms
                 double value = double.Parse(lastNumber);
                 double result = 1 / value;
 
-                string resultStr;
-                if (result % 1 == 0)
+                if (double.IsInfinity(result) || double.IsNaN(result))
                 {
-                    resultStr = result.ToString("0");
-                }
-                else
-                {
-                    resultStr = result.ToString("G");
+                    MessageBox.Show("Cannot divide by zero.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
                 }
 
                 int lastIndex = expression.LastIndexOf(lastNumber);
                 if (lastIndex >= 0)
                 {
-                    CalculatorViewBox.Text = expression.Substring(0, lastIndex) + resultStr;
+                    CalculatorViewBox.Text = expression.Substring(0, lastIndex) + result.ToString();
                 }
             }
             catch (Exception ex)
@@ -318,20 +304,10 @@ namespace Calculator_WinForms
                 double value = double.Parse(lastNumber);
                 double result = value * value;
 
-                string resultStr;
-                if (result % 1 == 0)
-                {
-                    resultStr = result.ToString("0");
-                }
-                else
-                {
-                    resultStr = result.ToString("G");
-                }
-
                 int lastIndex = expression.LastIndexOf(lastNumber);
                 if (lastIndex >= 0)
                 {
-                    CalculatorViewBox.Text = expression.Substring(0, lastIndex) + resultStr;
+                    CalculatorViewBox.Text = expression.Substring(0, lastIndex) + result.ToString();
                 }
             }
             catch (Exception ex)
@@ -355,20 +331,10 @@ namespace Calculator_WinForms
                 double value = double.Parse(lastNumber);
                 double result = Math.Sqrt(value);
 
-                string resultStr;
-                if (result % 1 == 0)
-                {
-                    resultStr = result.ToString("0");
-                }
-                else
-                {
-                    resultStr = result.ToString("G");
-                }
-
                 int lastIndex = expression.LastIndexOf(lastNumber);
                 if (lastIndex >= 0)
                 {
-                    CalculatorViewBox.Text = expression.Substring(0, lastIndex) + resultStr;
+                    CalculatorViewBox.Text = expression.Substring(0, lastIndex) + result.ToString();
                 }
             }
             catch (Exception ex)
