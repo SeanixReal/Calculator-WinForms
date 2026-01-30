@@ -69,7 +69,15 @@ namespace Calculator_WinForms
                     return;
                 }
                 
-                string newNumber = lastNumber.StartsWith("-") ? lastNumber.Substring(1) : "-" + lastNumber;
+                string newNumber;
+                if (lastNumber.StartsWith("-"))
+                {
+                    newNumber = lastNumber.Substring(1);
+                }
+                else
+                {
+                    newNumber = "-" + lastNumber;
+                }
                 int lastIndex = text.LastIndexOf(lastNumber);
                 CalculatorViewBox.Text = text.Substring(0, lastIndex) + newNumber;
                 return;
